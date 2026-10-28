@@ -85,7 +85,7 @@ button:focus-visible{outline:3px solid var(--led);outline-offset:2px}
 
   <section class="help">
     <h1>Table tennis vs 5 rivals</h1>
-    <p>Pick Xenia, Egor, Leonid the octopus, Bolt the robot or Zorp the alien. Rounds go to 11 points, win by 2. Each player serves twice in a row (one serve each at 10:10). Two rounds take the match. Your rival plays harder every round.</p>
+    <p>Pick Xenia, Egor, Leonid the octopus, Bolt the robot or Zorp the alien. One match to 11 points, win by 2. Each player serves twice in a row (one serve each at 10:10). Your rival plays harder as the match goes on.</p>
     <dl>
       <dt>MOVE</dt><dd>Mouse, finger drag on the screen, ← → keys or the D-pad</dd>
       <dt>SERVE</dt><dd>Click / tap the screen, Space or A</dd>
@@ -118,7 +118,7 @@ const ROUNDS = [
 // Rivals: 12-column left half of a 24x28 sprite, mirrored. 0 black, 1 dark, 2 light, 3 white, . clear
 // eye: blink/happy patch (left eye; right eye is mirrored). lid = blink line color, null = eyes switch off
 const CHARS = [
-  { name: 'XENIA', tag: 'TWIN-TAIL ACE', speed: 1, err: 1.35, miss: 1.6, reach: 0.24,
+  { name: 'XENIA', tag: 'TWIN-TAIL ACE', speed: 1, err: 1, miss: 1.6, reach: 0.24,
     eye: { x: 5, y: 8, w: 3, h: 4, bg: 3, lid: 0 },
     half: ['......000000', '....00111111', '...011111111', '..0111111111', '.00112111111',
       '011011111111', '011011311131', '011013331333', '011010003333', '011010303333',
@@ -126,7 +126,7 @@ const CHARS = [
       '0110.0133333', '0110...00333', '.010.0022222', '.01002222233', '..0002222223',
       '...032222222', '...032211222', '...032222222', '...033222222', '....01111111',
       '....01111111', '...011111111', '...011111111'],
-    lines: { r: ["Hi! I'm Xenia. First to 11 wins the round. Ready?", "Round 2! I'm going to stop going easy on you.", "Final round. Full power, no mercy!"],
+    lines: { r: ["Hi! I'm Xenia. First to 11 wins. Ready?", "Okay! I'm going to stop going easy on you.", "Full power now, no mercy!"],
       winR: "Hehe! That round is mine~", loseR: "Whoa... you took that round!", winM: "Victory! Train hard and come back~", loseM: "You beat me! Rematch soon, okay?" } },
   { name: 'EGOR', tag: 'HOT-HEAD ROOKIE', speed: 1.1, err: 1, reach: 0.24,
     eye: { x: 5, y: 9, w: 3, h: 3, bg: 3, lid: 0 },
@@ -136,7 +136,7 @@ const CHARS = [
       '....00133333', '......000333', '...001111133', '..0111111133', '..0111111133',
       '..0311111133', '..0311111133', '..0311111133', '..0331111133', '...011111111',
       '...011111111', '...011111111', '...011111111'],
-    lines: { r: ["Yo! I'm Egor. First to 11 takes the round!", "Okay, warm-up is over. Round 2!", "Final round. I won't hold back!"],
+    lines: { r: ["Yo! I'm Egor. First to 11 wins!", "Okay, warm-up is over!", "No more holding back!"],
       winR: "Heh. Too easy!", loseR: "Tch... lucky shot.", winM: "I'm the champ! Come back stronger.", loseM: "You got me. Respect!" } },
   { name: 'LEONID', tag: 'EIGHT ARMS', speed: 0.85, err: 1, reach: 0.3,
     eye: { x: 5, y: 8, w: 3, h: 3, bg: 2, lid: 0 },
@@ -146,7 +146,7 @@ const CHARS = [
       '...022222222', '..0222222222', '.022.022.022', '022..022.022', '02...02..022',
       '02...02...02', '.02..02...02', '.02...02..02', '..02..02.02.', '..02...0.02.',
       '...0.....0..'],
-    lines: { r: ["Blub! I'm Leonid. Eight arms, one paddle!", "Round 2. My arms are warmed up!", "Final round. Full ink power!"],
+    lines: { r: ["Blub! I'm Leonid. Eight arms, one paddle!", "Blub! My arms are warmed up!", "Full ink power!"],
       winR: "Blub blub! Mine!", loseR: "Ink-credible shot...", winM: "Back to the ocean, champion!", loseM: "You out-played eight arms!" } },
   { name: 'BOLT', tag: 'STEEL DEFENSE', speed: 0.9, err: 0.6, reach: 0.24,
     eye: { x: 5, y: 6, w: 3, h: 3, bg: 0, lid: null },
@@ -156,7 +156,7 @@ const CHARS = [
       '.01111111111', '.01122222222', '.01122332222', '.01122222222', '.01111111111',
       '010111111111', '010111111111', '010111111111', '000111111111', '...011111111',
       '...011111111', '...011111111', '...011111111'],
-    lines: { r: ["BEEP. UNIT BOLT ONLINE. FIRST TO 11.", "ROUND 2. RAISING DIFFICULTY.", "FINAL ROUND. MAX POWER MODE."],
+    lines: { r: ["BEEP. UNIT BOLT ONLINE. FIRST TO 11.", "RAISING DIFFICULTY.", "MAX POWER MODE."],
       winR: "POINT LOGGED. BEEP.", loseR: "ERROR... UNEXPECTED.", winM: "VICTORY. HUMAN REBOOT NEEDED.", loseM: "SYSTEM DEFEATED. GG HUMAN." } },
   { name: 'ZORP', tag: 'FROM PLANET ZZ', speed: 1.2, err: 1.1, reach: 0.24,
     eye: { x: 2, y: 8, w: 5, h: 4, bg: 2, lid: 0 },
@@ -166,7 +166,7 @@ const CHARS = [
       '....02222222', '.....0022222', '......000222', '...000111111', '..0111111111',
       '..0211111111', '..0211111111', '..0211111111', '..0221111111', '...011111111',
       '...011111111', '...011111111', '...011111111'],
-    lines: { r: ["Greetings, earthling! I am Zorp. Let's play!", "Round 2. My planet is watching!", "Final round! For the mothership!"],
+    lines: { r: ["Greetings, earthling! I am Zorp. Let's play!", "My planet is watching!", "For the mothership!"],
       winR: "Zorp scores! Easy!", loseR: "Earthlings are fast...", winM: "Zorp wins! Beam me up~", loseM: "You win! I must report this." } },
 ];
 CHARS.forEach(c => { c.sprite = c.half.map(r => { r = (r + '............').slice(0, 12); return r + [...r].reverse().join(''); }); });
@@ -177,7 +177,7 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
 // ---------- state ----------
 let mode = 'title', t = 0, msg = '', sub = '', msgT = 0, overT = 0, dlg = null, lastA = -9, smash = false, smashT = 0, aiServeT = 0;
-let score = [0, 0], wins = [0, 0], round = 0, serverStart = 0, lastWinner = 0, sel = 0, opp = CHARS[0];
+let sixSeven = 0, score = [0, 0], wins = [0, 0], round = 0, serverStart = 0, lastWinner = 0, sel = 0, opp = CHARS[0];
 const ball = { x: 0, y: 0.25, z: PZ, vx: 0, vy: 0, vz: 0, hitter: 'P', bounces: 0, live: false, visible: false };
 const pad = { x: 0, tx: 0, vx: 0, y: 0.2 };
 const ai = { x: 0, target: 0, swing: 0, blinkAt: 2, happy: 0, moving: false };
@@ -208,6 +208,9 @@ function startGame() {
 function startRound(r) { round = r; score = [0, 0]; serverStart = r % 2; nextServe(); }
 function nextServe() {
   const total = score[0] + score[1];
+  // one match to 11: the rival steps up a difficulty level every 8 points played
+  const level = Math.min(2, Math.floor(total / 8));
+  if (level > round) { round = level; return showDialog([opp.lines.r[level]], nextServe); }
   const deuce = score[0] >= PTS - 1 && score[1] >= PTS - 1;
   const server = (serverStart + (deuce ? total : Math.floor(total / 2))) % 2;
   ball.live = false; ball.visible = true; ball.vx = ball.vy = ball.vz = 0; smash = false;
@@ -246,19 +249,16 @@ function endPoint(w, reason) {
   if (w === 1) ai.happy = 1.4;
   w === 0 ? jingle([523, 659, 784]) : jingle([392, 330, 262]);
   mode = 'point'; msgT = 1.4;
+  if (Math.min(...score) === 6 && Math.max(...score) === 7) {
+    sixSeven = 2.6; msgT = 2.7;
+    [0, 0.35, 0.7, 1.05].forEach((d, i) => sfx(i % 2 ? 392 : 330, 0.18, 'square', 0.06, 0.3 + d));
+  }
 }
 function afterPoint() {
   const w = lastWinner;
   if (score[w] < PTS || score[w] - score[1 - w] < 2) return nextServe();
   wins[w]++; ball.visible = false;
-  const pages = [w === 0 ? opp.lines.loseR : opp.lines.winR];
-  if (wins[w] >= 2) {
-    pages.push(w === 0 ? opp.lines.loseM : opp.lines.winM);
-    showDialog(pages, () => { mode = 'over'; overT = t; w === 0 ? jingle([523, 659, 784, 1046]) : jingle([330, 294, 262, 196]); });
-  } else {
-    pages.push(opp.lines.r[round + 1]);
-    showDialog(pages, () => startRound(round + 1));
-  }
+  showDialog([w === 0 ? opp.lines.loseM : opp.lines.winM], () => { mode = 'over'; overT = t; w === 0 ? jingle([523, 659, 784, 1046]) : jingle([330, 294, 262, 196]); });
 }
 function wrap(s, n = 18) {
   const out = []; let cur = '';
@@ -336,7 +336,7 @@ function update(dt) {
   else if (mode === 'rally' || mode === 'point') goal = 0;
   const sp = R.speed * opp.speed * dt, step = clamp(goal - ai.x, -sp, sp);
   ai.moving = Math.abs(step) > 0.002; ai.x += step;
-  ai.swing -= dt; ai.happy -= dt; smashT -= dt;
+  ai.swing -= dt; ai.happy -= dt; smashT -= dt; sixSeven -= dt;
   if (t > ai.blinkAt + 0.14) ai.blinkAt = t + rnd(1.5, 4);
 
   if (mode === 'serveP') { ball.x = pad.x; ball.y = 0.24 + 0.05 * Math.sin(t * 6); ball.z = PZ + 0.04; }
@@ -453,12 +453,7 @@ function drawScene() {
 function drawHUD() {
   px(0, 0, W, 11, 0);
   text('YOU ' + score[0], 2, 2, 3);
-  text('R' + (round + 1), 80, 13, 1, 8, 'center');
   text(score[1] + ' ' + opp.name, 158, 2, 3, 8, 'right');
-  for (let i = 0; i < 2; i++) {
-    px(2 + i * 6, 13, 4, 4, 0); if (wins[0] <= i) px(3 + i * 6, 14, 2, 2, 3);
-    px(154 - i * 6, 13, 4, 4, 0); if (wins[1] <= i) px(155 - i * 6, 14, 2, 2, 3);
-  }
 }
 function drawDialog() {
   box(4, 98, 152, 44);
@@ -479,12 +474,24 @@ function note(x, y, val) {
   text(String(val), x + 54, y + 6, 0, 8, 'right');
   shekel(x + 46, y + 17, 1, 0);
 }
+// Easter egg at 6:7 — two open palms weighing "6" against "7"
+function palm(x, y) {
+  for (let i = 0; i < 4; i++) { px(x + 1 + i * 4, y - 6 + (i === 0 || i === 3 ? 2 : 0), 4, 8, 0); px(x + 2 + i * 4, y - 5 + (i === 0 || i === 3 ? 2 : 0), 2, 7, 3); }
+  px(x, y, 18, 10, 0); px(x + 1, y + 1, 16, 8, 3); px(x + 6, y + 9, 6, 6, 0); px(x + 7, y + 9, 4, 6, 3);
+}
+function drawSixSeven() {
+  box(4, 26, 152, 104);
+  const k = Math.round(Math.sin(t * 11) * 7);
+  text('6', 41, 44 + k, 0, 16, 'center'); palm(32, 64 + k);
+  text('7', 119, 44 - k, 0, 16, 'center'); palm(110, 64 - k);
+  text('SIX SEVEN', 80, 102, 0, 16, 'center');
+}
 function drawPrize() {
   const won = wins[0] > wins[1];
   px(0, 0, W, H, 3);
   for (let x = 0; x < W; x += 2) { px(x, 0, 1, 1, 2); px(x + 1, H - 1, 1, 1, 2); }
   text(won ? 'ПОЗДРАВЛЯЕМ!' : 'НЕ УНЫВАЙ!', 80, 5, 0, 8, 'center');
-  text(wins[0] + ':' + wins[1] + ' VS ' + opp.name, 80, 16, 1, 8, 'center');
+  text(score[0] + ':' + score[1] + ' VS ' + opp.name, 80, 16, 1, 8, 'center');
   text('ДАРИМ ТЕБЕ', 80, 30, 0, 8, 'center');
   text('ТРЕНИРОВКУ', 80, 40, 0, 8, 'center');
   text('С ТРЕНЕРОМ', 80, 50, 0, 8, 'center');
@@ -516,7 +523,8 @@ function draw() {
   if (mode === 'serveP' && Math.floor(t * 2) % 2) { px(28, 131, 104, 11, 0); text('TAP TO SERVE', 80, 133, 3, 8, 'center'); }
   if (mode === 'serveA') { px(24, 131, 112, 11, 0); text(opp.name + ' SERVES', 80, 133, 3, 8, 'center'); }
   if (smashT > 0 && mode === 'rally') { px(48, 84, 64, 12, 0); text('SMASH!', 80, 86, 3, 8, 'center'); }
-  if (mode === 'point') { box(28, 84, 104, 32); text(msg, 80, 91, 0, 8, 'center'); text(sub, 80, 103, 1, 8, 'center'); }
+  if (mode === 'point' && sixSeven > 0) drawSixSeven();
+  else if (mode === 'point') { box(28, 84, 104, 32); text(msg, 80, 91, 0, 8, 'center'); text(sub, 80, 103, 1, 8, 'center'); }
 }
 
 // ---------- input ----------
