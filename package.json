@@ -1,0 +1,9 @@
+{
+  "name": "ping-pixel",
+  "version": "1.0.0",
+  "description": "Pixel table tennis game in black-and-white handheld style",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": "20.x" },
+  "license": "MIT"
+}

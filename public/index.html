@@ -1,0 +1,564 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ping Pixel</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap">
+<style>
+*{box-sizing:border-box}body{margin:0}[hidden]{display:none!important}
+/* Layout: one handheld console centered on a dark desk, help card beside it (stacks on phones) */
+:root{
+  --desk:#181817;
+  --shell:#d3d1ca;
+  --shell-shade:#b4b2ab;
+  --bezel:#46464b;
+  --ink:#222220;
+  --paper:#ecebe6;
+  --led:#d8423a;
+  --f-pixel:"Press Start 2P", ui-monospace, monospace;
+  --f-body:"VT323", ui-monospace, Menlo, monospace;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--desk);color:var(--paper);font-family:var(--f-body);font-size:20px;line-height:1.25;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px}
+.wrap{display:flex;flex-wrap:wrap;gap:32px;justify-content:center;align-items:flex-start;max-width:900px;margin:0 auto}
+.shell{width:100%;max-width:400px;background:var(--shell);border-radius:14px 14px 56px 14px;padding:20px 20px 28px;
+  box-shadow:inset -6px -6px 0 var(--shell-shade),0 18px 40px rgba(0,0,0,.5);color:var(--ink)}
+.bezel{background:var(--bezel);border-radius:10px 10px 32px 10px;padding:12px 22px 22px}
+.bezel-top{display:flex;align-items:center;gap:8px;font-family:var(--f-pixel);font-size:7px;letter-spacing:.08em;color:#b9b9bf;margin-bottom:10px}
+.led{width:7px;height:7px;border-radius:50%;background:var(--led);box-shadow:0 0 6px var(--led)}
+canvas{display:block;width:100%;max-width:100%;aspect-ratio:160/144;image-rendering:pixelated;image-rendering:crisp-edges;
+  background:#eeeeee;touch-action:none;cursor:none;outline:3px solid #2c2c30}
+.screen{position:relative}
+#replay{position:absolute;left:50%;bottom:3%;transform:translateX(-50%);font-family:var(--f-pixel);font-size:clamp(8px,2.4vw,11px);
+  padding:.7em 1.1em;background:#151515;color:#eeeeee;border:3px solid #eeeeee;outline:2px solid #151515;cursor:pointer;white-space:nowrap}
+#replay:hover{background:#5c5c5c}
+.brand{font-family:var(--f-pixel);font-size:14px;margin:16px 0 18px 4px;letter-spacing:.04em;font-style:italic}
+.brand small{font-size:8px;font-style:normal;margin-left:6px;opacity:.7}
+.controls{display:flex;justify-content:space-between;align-items:center;gap:16px}
+.dpad{display:flex;gap:4px}
+.dpad button,.ab button{font-family:var(--f-pixel);border:0;cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none}
+.dpad button{width:48px;height:42px;background:#2a2a2a;color:#9a9a9a;font-size:12px;border-radius:6px}
+.ab{display:flex;gap:14px;transform:rotate(-18deg)}
+.ab div{display:flex;flex-direction:column;align-items:center;gap:6px;font-family:var(--f-pixel);font-size:8px}
+.ab button{width:52px;height:52px;border-radius:50%;background:#3a3a3a;color:#cfcfcf;font-size:14px;box-shadow:inset -3px -3px 0 #222}
+.dpad button:active,.ab button:active{transform:translateY(2px);filter:brightness(1.3)}
+button:focus-visible{outline:3px solid var(--led);outline-offset:2px}
+.help{flex:1 1 260px;max-width:400px;min-width:0}
+.help h1{font-family:var(--f-pixel);font-size:18px;line-height:1.5;margin:4px 0 12px;text-wrap:balance}
+.help p{margin:0 0 14px;color:#c9c8c2}
+.help dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0 0 18px}
+.help dt{font-family:var(--f-pixel);font-size:9px;padding-top:5px;color:var(--paper)}
+.help dd{margin:0;color:#c9c8c2}
+.help .rule{border-top:2px dashed #3a3a38;padding-top:12px;font-size:18px;color:#9d9c96}
+@media (prefers-reduced-motion:reduce){.dpad button:active,.ab button:active{transform:none}}
+</style>
+</head>
+<body>
+
+<main class="wrap">
+  <div class="shell">
+    <div class="bezel">
+      <div class="bezel-top"><span class="led"></span>MONO PIXEL DISPLAY</div>
+      <div class="screen">
+        <canvas id="screen" width="160" height="144" aria-label="Table tennis game screen"></canvas>
+        <button id="replay" hidden>ИГРАТЬ ЕЩЁ РАЗ</button>
+      </div>
+    </div>
+    <div class="brand">PING PIXEL<small>TT-160</small></div>
+    <div class="controls">
+      <div class="dpad">
+        <button id="btnL" aria-label="Move left">◀</button>
+        <button id="btnR" aria-label="Move right">▶</button>
+      </div>
+      <div class="ab">
+        <div><button id="btnB" aria-label="Sound on or off">B</button>SOUND</div>
+        <div><button id="btnA" aria-label="Serve, smash, continue">A</button>HIT</div>
+      </div>
+    </div>
+  </div>
+
+  <section class="help">
+    <h1>Table tennis vs 5 rivals</h1>
+    <p>Pick Xenia, Egor, Leonid the octopus, Bolt the robot or Zorp the alien. First to 5 points takes a round, two rounds take the match. Your rival plays harder every round.</p>
+    <dl>
+      <dt>MOVE</dt><dd>Mouse, finger drag on the screen, ← → keys or the D-pad</dd>
+      <dt>SERVE</dt><dd>Click / tap the screen, Space or A</dd>
+      <dt>SMASH</dt><dd>Press A just before the ball reaches your paddle</dd>
+      <dt>AIM</dt><dd>Hit with the paddle edge to angle the ball. Too wide and it lands out.</dd>
+      <dt>SOUND</dt><dd>B toggles beeps</dd>
+    </dl>
+    <p class="rule">Rules: the ball must bounce once on your side before you hit it, then land on Mika's side. Net, out or a missed ball gives the point away.</p>
+  </section>
+</main>
+
+<script>
+(() => {
+const cv = document.getElementById('screen'), ctx = cv.getContext('2d');
+const W = 160, H = 144;
+const C = ['#151515', '#5c5c5c', '#a9a9a9', '#eeeeee'];
+const FONT = '"Press Start 2P", monospace';
+
+// World (meters): x across, y up from table top, z from your end (0) to Mika's end (L)
+const G = 4.2, HW = 0.7625, L = 2.74, NET = 1.37, NETH = 0.1525, PZ = -0.12, AZ = 2.95, FLOOR = -0.76;
+const CAMZ = -1.3, CAMY = 1.0, F = 110, HOR = 39, CX = 80;
+const REACH = 0.2, PTS = 5;
+
+const ROUNDS = [
+  { speed: 0.9, err: 0.26, T: 1.05, miss: 0.12, spread: 0.35 },
+  { speed: 1.3, err: 0.15, T: 0.92, miss: 0.07, spread: 0.5 },
+  { speed: 1.85, err: 0.07, T: 0.8, miss: 0.04, spread: 0.62 },
+];
+
+// Rivals: 12-column left half of a 24x28 sprite, mirrored. 0 black, 1 dark, 2 light, 3 white, . clear
+// eye: blink/happy patch (left eye; right eye is mirrored). lid = blink line color, null = eyes switch off
+const CHARS = [
+  { name: 'XENIA', tag: 'TWIN-TAIL ACE', speed: 1, err: 1, reach: 0.24,
+    eye: { x: 5, y: 8, w: 3, h: 4, bg: 3, lid: 0 },
+    half: ['......000000', '....00111111', '...011111111', '..0111111111', '.00112111111',
+      '011011111111', '011011311131', '011013331333', '011010003333', '011010303333',
+      '011010003333', '011010003333', '011013233333', '011013333330', '011001333333',
+      '0110.0133333', '0110...00333', '.010.0022222', '.01002222233', '..0002222223',
+      '...032222222', '...032211222', '...032222222', '...033222222', '....01111111',
+      '....01111111', '...011111111', '...011111111'],
+    lines: { r: ["Hi! I'm Xenia. First to 5 wins the round. Ready?", "Round 2! I'm going to stop going easy on you.", "Final round. Full power, no mercy!"],
+      winR: "Hehe! That round is mine~", loseR: "Whoa... you took that round!", winM: "Victory! Train hard and come back~", loseM: "You beat me! Rematch soon, okay?" } },
+  { name: 'EGOR', tag: 'HOT-HEAD ROOKIE', speed: 1.1, err: 1, reach: 0.24,
+    eye: { x: 5, y: 9, w: 3, h: 3, bg: 3, lid: 0 },
+    half: ['...0....0...', '...00..010..', '..0110.0110.', '.01111011111', '011111111111',
+      '011111111111', '011111111111', '011111311113', '011113331333', '.01110003333',
+      '.01110303333', '.01110003333', '.01113333333', '..0133333330', '...013333333',
+      '....00133333', '......000333', '...001111133', '..0111111133', '..0111111133',
+      '..0311111133', '..0311111133', '..0311111133', '..0331111133', '...011111111',
+      '...011111111', '...011111111', '...011111111'],
+    lines: { r: ["Yo! I'm Egor. First to 5 takes the round!", "Okay, warm-up is over. Round 2!", "Final round. I won't hold back!"],
+      winR: "Heh. Too easy!", loseR: "Tch... lucky shot.", winM: "I'm the champ! Come back stronger.", loseM: "You got me. Respect!" } },
+  { name: 'LEONID', tag: 'EIGHT ARMS', speed: 0.85, err: 1, reach: 0.3,
+    eye: { x: 5, y: 8, w: 3, h: 3, bg: 2, lid: 0 },
+    half: ['......000000', '....00222222', '...022222222', '..0222122222', '..0222222222',
+      '.02222222122', '.02212222222', '.02222222222', '.02220002222', '.02220302222',
+      '.02220002222', '.02222222222', '.02222222220', '..0222222222', '..0222222222',
+      '...022222222', '..0222222222', '.022.022.022', '022..022.022', '02...02..022',
+      '02...02...02', '.02..02...02', '.02...02..02', '..02..02.02.', '..02...0.02.',
+      '...0.....0..'],
+    lines: { r: ["Blub! I'm Leonid. Eight arms, one paddle!", "Round 2. My arms are warmed up!", "Final round. Full ink power!"],
+      winR: "Blub blub! Mine!", loseR: "Ink-credible shot...", winM: "Back to the ocean, champion!", loseM: "You out-played eight arms!" } },
+  { name: 'BOLT', tag: 'STEEL DEFENSE', speed: 0.9, err: 0.6, reach: 0.24,
+    eye: { x: 5, y: 6, w: 3, h: 3, bg: 0, lid: null },
+    half: ['..........00', '...........0', '...000000000', '...022222222', '..0022222222',
+      '..0022222222', '..0020000000', '..0020330000', '..0020000000', '..0022222222',
+      '...022020202', '...022222222', '...000000000', '........0111', '..0000000000',
+      '.01111111111', '.01122222222', '.01122332222', '.01122222222', '.01111111111',
+      '010111111111', '010111111111', '010111111111', '000111111111', '...011111111',
+      '...011111111', '...011111111', '...011111111'],
+    lines: { r: ["BEEP. UNIT BOLT ONLINE. FIRST TO 5.", "ROUND 2. RAISING DIFFICULTY.", "FINAL ROUND. MAX POWER MODE."],
+      winR: "POINT LOGGED. BEEP.", loseR: "ERROR... UNEXPECTED.", winM: "VICTORY. HUMAN REBOOT NEEDED.", loseM: "SYSTEM DEFEATED. GG HUMAN." } },
+  { name: 'ZORP', tag: 'FROM PLANET ZZ', speed: 1.2, err: 1.1, reach: 0.24,
+    eye: { x: 2, y: 8, w: 5, h: 4, bg: 2, lid: 0 },
+    half: ['...00.......', '...00.......', '....0.000000', '....00222222', '...022222222',
+      '..0222222222', '.02222222222', '.02222222222', '.02200022222', '.02000002222',
+      '.02000302222', '.02200002222', '..0220022222', '..0222222222', '...022222220',
+      '....02222222', '.....0022222', '......000222', '...000111111', '..0111111111',
+      '..0211111111', '..0211111111', '..0211111111', '..0221111111', '...011111111',
+      '...011111111', '...011111111', '...011111111'],
+    lines: { r: ["Greetings, earthling! I am Zorp. Let's play!", "Round 2. My planet is watching!", "Final round! For the mothership!"],
+      winR: "Zorp scores! Easy!", loseR: "Earthlings are fast...", winM: "Zorp wins! Beam me up~", loseM: "You win! I must report this." } },
+];
+CHARS.forEach(c => { c.sprite = c.half.map(r => { r = (r + '............').slice(0, 12); return r + [...r].reverse().join(''); }); });
+
+function proj(x, y, z) { const s = F / (z - CAMZ); return { x: CX + x * s, y: HOR + (CAMY - y) * s, s }; }
+const rnd = (a, b) => a + Math.random() * (b - a);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+// ---------- state ----------
+let mode = 'title', t = 0, msg = '', sub = '', msgT = 0, overT = 0, dlg = null, lastA = -9, smash = false, smashT = 0, aiServeT = 0;
+let score = [0, 0], wins = [0, 0], round = 0, serverStart = 0, lastWinner = 0, sel = 0, opp = CHARS[0];
+const ball = { x: 0, y: 0.25, z: PZ, vx: 0, vy: 0, vz: 0, hitter: 'P', bounces: 0, live: false, visible: false };
+const pad = { x: 0, tx: 0, vx: 0, y: 0.2 };
+const ai = { x: 0, target: 0, swing: 0, blinkAt: 2, happy: 0, moving: false };
+const keys = { l: false, r: false };
+
+// ---------- sound ----------
+let ac = null, soundOn = true;
+function ensureAudio() {
+  try {
+    if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
+    else if (ac.state === 'suspended') ac.resume();
+  } catch (e) { ac = null; }
+}
+function sfx(f, d, type = 'square', vol = 0.05, delay = 0) {
+  if (!ac || !soundOn) return;
+  const o = ac.createOscillator(), g = ac.createGain(), st = ac.currentTime + delay;
+  o.type = type; o.frequency.value = f;
+  g.gain.setValueAtTime(vol, st); g.gain.exponentialRampToValueAtTime(0.0001, st + d);
+  o.connect(g).connect(ac.destination); o.start(st); o.stop(st + d + 0.02);
+}
+const jingle = (notes) => notes.forEach((f, i) => sfx(f, 0.09, 'square', 0.05, i * 0.09));
+
+// ---------- game flow ----------
+function startGame() {
+  wins = [0, 0]; score = [0, 0]; round = 0; opp = CHARS[sel]; ai.x = 0;
+  showDialog([opp.lines.r[0],"Move with mouse or arrows. Tap or A to serve.", "Press A right as you hit to SMASH!"], () => startRound(0));
+}
+function startRound(r) { round = r; score = [0, 0]; serverStart = r % 2; nextServe(); }
+function nextServe() {
+  const total = score[0] + score[1];
+  const server = (serverStart + Math.floor(total / 2)) % 2;
+  ball.live = false; ball.visible = true; ball.vx = ball.vy = ball.vz = 0; smash = false;
+  if (server === 0) mode = 'serveP';
+  else { mode = 'serveA'; aiServeT = 1.0; }
+}
+function shoot(tx, tz, T) {
+  ball.vx = (tx - ball.x) / T; ball.vz = (tz - ball.z) / T;
+  ball.vy = (0.5 * G * T * T - ball.y) / T;
+  ball.bounces = 0; ball.live = true;
+}
+function playerHit(serve) {
+  const off = serve ? 0 : clamp((ball.x - pad.x) / REACH, -1, 1);
+  smash = !serve && (t - lastA) < 0.3;
+  const tx = pad.x * 0.2 + off * 0.7 + clamp(pad.vx, -3, 3) * 0.1 + rnd(-0.06, 0.06);
+  ball.y = Math.max(ball.y, 0.12); ball.z = PZ;
+  shoot(tx, rnd(1.85, serve ? 2.35 : 2.5), smash ? 0.6 : (serve ? 0.95 : 0.82));
+  ball.hitter = 'P';
+  if (smash) { smashT = 0.6; sfx(1320, 0.12); sfx(660, 0.12, 'square', 0.04, 0.05); } else sfx(880, 0.06);
+  const tt = (AZ - ball.z) / ball.vz;
+  ai.target = clamp(ball.x + ball.vx * tt + rnd(-1, 1) * ROUNDS[round].err * opp.err * (smash ? 1.6 : 1), -1, 1);
+}
+function aiHit(serve) {
+  const R = ROUNDS[round];
+  let tx = rnd(-1, 1) * R.spread;
+  if (!serve && Math.random() < R.miss) tx = (Math.random() < 0.5 ? -1 : 1) * rnd(0.82, 0.98);
+  ball.y = Math.max(ball.y, 0.15); ball.z = AZ;
+  shoot(tx, rnd(0.35, 1.0), R.T * rnd(0.95, 1.05) + (serve ? 0.1 : 0));
+  ball.hitter = 'A'; smash = false; ai.swing = 0.25; sfx(660, 0.06);
+}
+function endPoint(w, reason) {
+  if (!ball.live) return;
+  ball.live = false; score[w]++; lastWinner = w;
+  msg = w === 0 ? 'YOUR POINT' : opp.name + ' POINT';
+  sub = { OUT: 'OUT!', NET: 'NET!', FAULT: 'FAULT!', MISS: w === 0 ? 'WINNER!' : 'MISSED!' }[reason];
+  if (w === 1) ai.happy = 1.4;
+  w === 0 ? jingle([523, 659, 784]) : jingle([392, 330, 262]);
+  mode = 'point'; msgT = 1.4;
+}
+function afterPoint() {
+  const w = lastWinner;
+  if (score[w] < PTS) return nextServe();
+  wins[w]++; ball.visible = false;
+  const pages = [w === 0 ? opp.lines.loseR : opp.lines.winR];
+  if (wins[w] >= 2) {
+    pages.push(w === 0 ? opp.lines.loseM : opp.lines.winM);
+    showDialog(pages, () => { mode = 'over'; overT = t; w === 0 ? jingle([523, 659, 784, 1046]) : jingle([330, 294, 262, 196]); });
+  } else {
+    pages.push(opp.lines.r[round + 1]);
+    showDialog(pages, () => startRound(round + 1));
+  }
+}
+function wrap(s, n = 18) {
+  const out = []; let cur = '';
+  for (const w of s.split(' ')) {
+    if ((cur + ' ' + w).trim().length > n) { out.push(cur); cur = w; } else cur = (cur + ' ' + w).trim();
+  }
+  if (cur) out.push(cur);
+  return out;
+}
+function showDialog(pages, next) { mode = 'dialog'; dlg = { pages: pages.map(p => wrap(p)), i: 0, start: t, next }; }
+function dialogChars() { return Math.floor((t - dlg.start) * 45); }
+
+function pressA() {
+  ensureAudio();
+  if (mode === 'title') { sfx(988, 0.08); mode = 'select'; }
+  else if (mode === 'select') { sfx(988, 0.08); startGame(); }
+  else if (mode === 'dialog') {
+    const len = dlg.pages[dlg.i].join('').length;
+    if (dialogChars() < len) dlg.start = -99;
+    else if (++dlg.i < dlg.pages.length) { dlg.start = t; sfx(740, 0.03); }
+    else { const n = dlg.next; dlg = null; n(); }
+  }
+  else if (mode === 'serveP') { ball.x = pad.x; ball.y = 0.25; playerHit(true); mode = 'rally'; }
+  else if (mode === 'rally') lastA = t;
+  else if (mode === 'over' && t - overT > 0.8) playAgain();
+}
+function playAgain() { ensureAudio(); mode = 'select'; ball.visible = false; ai.x = 0; sfx(988, 0.08); }
+function pick(d) { sel = (sel + d + CHARS.length) % CHARS.length; opp = CHARS[sel]; sfx(740, 0.03); }
+
+// ---------- physics ----------
+function stepBall(dt) {
+  const py = ball.y, pz = ball.z;
+  ball.vy -= G * dt; ball.x += ball.vx * dt; ball.y += ball.vy * dt; ball.z += ball.vz * dt;
+  const hIdx = ball.hitter === 'P' ? 0 : 1;
+  const onTable = Math.abs(ball.x) <= HW && ball.z >= 0 && ball.z <= L;
+  if ((pz - NET) * (ball.z - NET) < 0 && ball.y < NETH && ball.y > -0.02 && Math.abs(ball.x) < HW + 0.15) {
+    ball.z = NET + (pz < NET ? -0.01 : 0.01); ball.vz *= -0.15; ball.vx *= 0.3;
+    sfx(150, 0.08, 'triangle', 0.08);
+    endPoint(1 - hIdx, 'NET');
+  }
+  if (py > 0 && ball.y <= 0 && onTable) {
+    ball.y = 0; ball.vy = -ball.vy * 0.82; sfx(440, 0.03, 'square', 0.04);
+    if (ball.live) {
+      const side = ball.z < NET ? 'P' : 'A';
+      if (side === ball.hitter) endPoint(1 - hIdx, 'FAULT');
+      else if (++ball.bounces >= 2) endPoint(hIdx, 'MISS');
+    }
+  }
+  if (ball.y <= FLOOR) {
+    ball.y = FLOOR; ball.vy = -ball.vy * 0.5; ball.vx *= 0.7; ball.vz *= 0.7;
+    if (ball.live) ball.bounces >= 1 ? endPoint(hIdx, 'MISS') : endPoint(1 - hIdx, 'OUT');
+  }
+  if (!ball.live) return;
+  if (ball.hitter === 'A' && ball.bounces === 1 && pz >= PZ && ball.z < PZ) {
+    if (Math.abs(ball.x - pad.x) < REACH && ball.y < 0.8) playerHit(false);
+  } else if (ball.hitter === 'P' && ball.bounces === 1 && pz <= AZ && ball.z > AZ) {
+    if (Math.abs(ball.x - ai.x) < opp.reach * (smash ? 0.67 : 1)) aiHit(false);
+  }
+}
+
+function update(dt) {
+  // paddle
+  if (keys.l) pad.tx -= 2.4 * dt;
+  if (keys.r) pad.tx += 2.4 * dt;
+  pad.tx = clamp(pad.tx, -1.05, 1.05);
+  const nx = pad.x + (pad.tx - pad.x) * Math.min(1, dt * 20);
+  pad.vx = pad.vx * 0.7 + ((nx - pad.x) / dt) * 0.3; pad.x = nx;
+  const wantY = (ball.live && ball.hitter === 'A' && ball.z < 1.4) ? clamp(ball.y, 0.05, 0.6) : 0.2;
+  pad.y += (wantY - pad.y) * Math.min(1, dt * 8);
+
+  // Mika
+  const R = ROUNDS[round];
+  let goal = ai.x;
+  if (mode === 'rally' && ball.live && ball.hitter === 'P') goal = ai.target;
+  else if (mode === 'rally' || mode === 'point') goal = 0;
+  const sp = R.speed * opp.speed * dt, step = clamp(goal - ai.x, -sp, sp);
+  ai.moving = Math.abs(step) > 0.002; ai.x += step;
+  ai.swing -= dt; ai.happy -= dt; smashT -= dt;
+  if (t > ai.blinkAt + 0.14) ai.blinkAt = t + rnd(1.5, 4);
+
+  if (mode === 'serveP') { ball.x = pad.x; ball.y = 0.24 + 0.05 * Math.sin(t * 6); ball.z = PZ + 0.04; }
+  if (mode === 'serveA') {
+    ball.x = ai.x - 0.15; ball.y = 0.3 + 0.05 * Math.sin(t * 6); ball.z = AZ;
+    if ((aiServeT -= dt) <= 0) { aiHit(true); mode = 'rally'; }
+  }
+  if (mode === 'rally' || mode === 'point') { stepBall(dt / 2); stepBall(dt / 2); }
+  if (mode === 'point' && (msgT -= dt) <= 0) afterPoint();
+}
+
+// ---------- pixel drawing ----------
+function px(x, y, w, h, c) { ctx.fillStyle = C[c]; ctx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); }
+function line(x0, y0, x1, y1, c) {
+  x0 = Math.round(x0); y0 = Math.round(y0); x1 = Math.round(x1); y1 = Math.round(y1);
+  const dx = Math.abs(x1 - x0), dy = -Math.abs(y1 - y0), sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1;
+  let err = dx + dy; ctx.fillStyle = C[c];
+  for (let i = 0; i < 1000; i++) {
+    if (x0 >= 0 && x0 < W && y0 >= 0 && y0 < H) ctx.fillRect(x0, y0, 1, 1);
+    if (x0 === x1 && y0 === y1) break;
+    const e2 = 2 * err;
+    if (e2 >= dy) { err += dy; x0 += sx; }
+    if (e2 <= dx) { err += dx; y0 += sy; }
+  }
+}
+function disc(cx, cy, r, c) {
+  cx = Math.round(cx); cy = Math.round(cy); ctx.fillStyle = C[c];
+  for (let dy = -r; dy <= r; dy++) { const h = Math.floor(Math.sqrt(r * r - dy * dy) + 0.5); ctx.fillRect(cx - h, cy + dy, h * 2 + 1, 1); }
+}
+function text(s, x, y, c, size = 8, align = 'left') {
+  ctx.font = size + 'px ' + FONT; ctx.textAlign = align; ctx.textBaseline = 'top';
+  ctx.fillStyle = C[c]; ctx.fillText(s, Math.round(x), Math.round(y));
+}
+function box(x, y, w, h) { px(x, y, w, h, 0); px(x + 1, y + 1, w - 2, h - 2, 3); px(x + 2, y + 2, w - 4, 1, 0); px(x + 2, y + h - 3, w - 4, 1, 0); px(x + 2, y + 2, 1, h - 4, 0); px(x + w - 3, y + 2, 1, h - 4, 0); }
+
+function drawOpp() {
+  const sx = Math.round(proj(ai.x, 0, 3.15).x);
+  const ox = sx - 12, oy = 40 + (ai.moving && Math.floor(t * 8) % 2 ? 1 : 0);
+  opp.sprite.forEach((row, y) => { for (let x = 0; x < 24; x++) { const ch = row[x]; if (ch !== '.') px(ox + x, oy + y, 1, 1, +ch); } });
+  const e = opp.eye, eyes = [e.x, 24 - e.x - e.w], mid = Math.floor(e.w / 2);
+  if (ai.happy > 0) {
+    const c = e.lid === null ? 3 : e.lid;
+    for (const ex of eyes) { px(ox + ex, oy + e.y, e.w, e.h, e.bg); px(ox + ex + mid, oy + e.y + 1, 1, 1, c); px(ox + ex + mid - 1, oy + e.y + 2, 1, 1, c); px(ox + ex + mid + 1, oy + e.y + 2, 1, 1, c); }
+  } else if (t > ai.blinkAt && t < ai.blinkAt + 0.14) {
+    for (const ex of eyes) { px(ox + ex, oy + e.y, e.w, e.h, e.bg); if (e.lid !== null) px(ox + ex, oy + e.y + Math.floor(e.h / 2), e.w, 1, e.lid); }
+  }
+  // paddle on the side the ball is coming to
+  const left = !(ball.visible && ball.x > ai.x);
+  const hx = left ? ox + 1 : ox + 22, hy = ai.swing > 0 ? oy + 15 : oy + 22, dx = left ? -3 : 3;
+  px(hx + (left ? -1 : 0), hy, 2, 4, 0);
+  disc(hx + dx, hy - 3, 3, 0); disc(hx + dx, hy - 3, 2, 1);
+}
+
+function drawTable() {
+  const n = proj(0, 0, 0), f = proj(0, 0, L);
+  const yN = Math.round(n.y), yF = Math.round(f.y);
+  // near legs
+  for (const lx of [-0.62, 0.62]) { const a = proj(lx, 0, 0.25), b = proj(lx, FLOOR, 0.25); px(a.x - 1, a.y, 3, b.y - a.y, 0); }
+  // top surface
+  for (let y = yF; y <= yN; y++) {
+    const s = (y - HOR) / CAMY, hw = HW * s;
+    px(CX - hw, y, hw * 2 + 1, 1, 1);
+  }
+  px(CX - HW * n.s, yN + 1, HW * n.s * 2 + 1, 3, 0);
+  // white lines
+  const a = proj(-HW, 0, 0), b = proj(HW, 0, 0), c = proj(-HW, 0, L), d = proj(HW, 0, L);
+  line(a.x, a.y, c.x, c.y, 3); line(b.x, b.y, d.x, d.y, 3);
+  line(a.x, a.y, b.x, b.y, 3); line(c.x, c.y, d.x, d.y, 3);
+  line(n.x, n.y, f.x, f.y, 3);
+}
+function drawNet() {
+  const l = proj(-HW - 0.15, NETH, NET), r = proj(HW + 0.15, NETH, NET), bt = proj(0, 0, NET);
+  const x0 = Math.round(l.x), x1 = Math.round(r.x), y0 = Math.round(l.y), y1 = Math.round(bt.y);
+  ctx.fillStyle = C[0];
+  for (let y = y0 + 1; y <= y1; y++) for (let x = x0; x <= x1; x++) if ((x + y) & 1) ctx.fillRect(x, y, 1, 1);
+  px(x0, y0 - 1, x1 - x0 + 1, 1, 0); px(x0, y0, x1 - x0 + 1, 1, 3);
+  px(x0 - 1, y0 - 1, 2, y1 - y0 + 3, 0); px(x1, y0 - 1, 2, y1 - y0 + 3, 0);
+}
+function drawBall() {
+  if (!ball.visible || ball.z - CAMZ < 0.3) return;
+  if (Math.abs(ball.x) <= HW && ball.z >= 0 && ball.z <= L && ball.y >= 0) {
+    const s = proj(ball.x, 0, ball.z); const r = Math.max(1, Math.round(0.03 * s.s));
+    px(s.x - r, s.y, r * 2, 1, 0);
+  }
+  const p = proj(ball.x, ball.y, ball.z); const r = Math.max(1, Math.round(0.025 * p.s));
+  disc(p.x, p.y, r + 1, 0); disc(p.x, p.y, r, 3);
+}
+function drawPaddle() {
+  const p = proj(pad.x, pad.y, PZ), r = Math.round(0.11 * p.s), cx = Math.round(p.x), cy = Math.round(p.y);
+  ctx.fillStyle = C[0];
+  for (let y = -r; y <= r; y++) for (let x = -r; x <= r; x++) {
+    const d = Math.sqrt(x * x + y * y);
+    if (d <= r && d > r - 2) ctx.fillRect(cx + x, cy + y, 1, 1);
+    else if (d <= r - 2 && ((x + y) & 1) && (y & 1)) ctx.fillRect(cx + x, cy + y, 1, 1);
+  }
+  px(cx - 2, cy + r, 5, 14, 0); px(cx - 1, cy + r + 1, 3, 12, 2);
+}
+
+function drawScene() {
+  px(0, 0, W, H, 3);
+  const fl = Math.round(proj(0, FLOOR, 4.6).y);
+  px(0, fl - 14, W, 14, 2); px(0, fl - 15, W, 1, 1);
+  for (let x = 0; x < W; x += 2) px(x + ((fl >> 0) & 1), fl - 16, 1, 1, 2);
+  px(0, fl, W, H - fl, 2);
+  for (let k = -5; k <= 5; k++) { const a = proj(k * 0.75, FLOOR, 4.6), b = proj(k * 0.75, FLOOR, -0.5); line(a.x, a.y, b.x, b.y, 1); }
+  px(0, fl, W, 1, 0);
+  drawOpp();
+  drawTable();
+  if (ball.z > NET) drawBall();
+  drawNet();
+  if (ball.z <= NET) drawBall();
+  if (mode !== 'title' && mode !== 'select') drawPaddle();
+}
+function drawHUD() {
+  px(0, 0, W, 11, 0);
+  text('YOU ' + score[0], 2, 2, 3);
+  text('R' + (round + 1), 80, 2, 2, 8, 'center');
+  text(score[1] + ' ' + opp.name, 158, 2, 3, 8, 'right');
+  for (let i = 0; i < 2; i++) {
+    px(2 + i * 6, 13, 4, 4, 0); if (wins[0] <= i) px(3 + i * 6, 14, 2, 2, 3);
+    px(154 - i * 6, 13, 4, 4, 0); if (wins[1] <= i) px(155 - i * 6, 14, 2, 2, 3);
+  }
+}
+function drawDialog() {
+  box(4, 98, 152, 44);
+  px(8, 90, opp.name.length * 8 + 8, 11, 0); text(opp.name, 12, 92, 3);
+  let left = dialogChars();
+  dlg.pages[dlg.i].forEach((ln, i) => { if (left > 0) text(ln.slice(0, left), 10, 106 + i * 11, 0); left -= ln.length; });
+  if (left > 0 && Math.floor(t * 3) % 2) { px(145, 133, 5, 1, 0); px(146, 134, 3, 1, 0); px(147, 135, 1, 1, 0); }
+}
+
+// Prize: three stylized notes (100 + 100 + 50) and a pixel shekel sign
+const SHEKEL = ['11111..', '1...1.1', '1.1.1.1', '1.1.1.1', '1.1...1', '1.11111'];
+function shekel(x, y, k, c) { SHEKEL.forEach((r, j) => { for (let i = 0; i < 7; i++) if (r[i] === '1') px(x + i * k, y + j * k, k, k, c); }); }
+function note(x, y, val) {
+  px(x, y, 60, 28, 0); px(x + 1, y + 1, 58, 26, 2);
+  px(x + 3, y + 3, 54, 1, 1); px(x + 3, y + 24, 54, 1, 1); px(x + 3, y + 3, 1, 22, 1); px(x + 56, y + 3, 1, 22, 1);
+  ctx.fillStyle = C[1];
+  for (let j = -7; j <= 7; j++) for (let i = -6; i <= 6; i++) if (i * i / 36 + j * j / 49 <= 1 && ((i + j) & 1)) ctx.fillRect(x + 15 + i, y + 14 + j, 1, 1);
+  text(String(val), x + 54, y + 6, 0, 8, 'right');
+  shekel(x + 46, y + 17, 1, 0);
+}
+function drawPrize() {
+  const won = wins[0] > wins[1];
+  px(0, 0, W, H, 3);
+  for (let x = 0; x < W; x += 2) { px(x, 0, 1, 1, 2); px(x + 1, H - 1, 1, 1, 2); }
+  text(won ? 'ПОЗДРАВЛЯЕМ!' : 'НЕ УНЫВАЙ!', 80, 5, 0, 8, 'center');
+  text(wins[0] + ':' + wins[1] + ' VS ' + opp.name, 80, 16, 1, 8, 'center');
+  text('ДАРИМ ТЕБЕ', 80, 30, 0, 8, 'center');
+  text('ТРЕНИРОВКУ', 80, 40, 0, 8, 'center');
+  text('С ТРЕНЕРОМ', 80, 50, 0, 8, 'center');
+  note(26, 62, 100); note(38, 70, 100); note(50, 78, 50);
+  text('250', 72, 110, 0, 16, 'center'); shekel(100, 112, 2, 0);
+}
+
+function draw() {
+  if (mode === 'over') return drawPrize();
+  drawScene();
+  if (mode === 'select') {
+    px(0, 0, W, 11, 0); text('CHOOSE RIVAL', 80, 2, 3, 8, 'center');
+    const bob = Math.floor(t * 3) % 2;
+    for (let i = 0; i < 6; i++) { px(8 + bob + i, 52 - i, 1, i * 2 + 1, 0); px(151 - bob - i, 52 - i, 1, i * 2 + 1, 0); }
+    box(16, 82, 128, 40);
+    text(opp.name, 80, 89, 0, 16, 'center'); text(opp.tag, 80, 109, 1, 8, 'center');
+    if (Math.floor(t * 2) % 2) { px(40, 131, 80, 11, 0); text('A: START', 80, 133, 3, 8, 'center'); }
+    return;
+  }
+  if (mode === 'title') {
+    box(16, 82, 128, 46);
+    text('PING', 80, 90, 0, 16, 'center'); text('PIXEL', 80, 108, 0, 16, 'center');
+    if (Math.floor(t * 2) % 2) { px(40, 131, 80, 11, 0); text('PRESS A', 80, 133, 3, 8, 'center'); }
+    text('TABLE TENNIS', 80, 16, 0, 8, 'center');
+    return;
+  }
+  drawHUD();
+  if (mode === 'dialog') drawDialog();
+  if (mode === 'serveP' && Math.floor(t * 2) % 2) { px(28, 131, 104, 11, 0); text('TAP TO SERVE', 80, 133, 3, 8, 'center'); }
+  if (mode === 'serveA') { px(24, 131, 112, 11, 0); text(opp.name + ' SERVES', 80, 133, 3, 8, 'center'); }
+  if (smashT > 0 && mode === 'rally') { px(48, 84, 64, 12, 0); text('SMASH!', 80, 86, 3, 8, 'center'); }
+  if (mode === 'point') { box(28, 84, 104, 32); text(msg, 80, 91, 0, 8, 'center'); text(sub, 80, 103, 1, 8, 'center'); }
+}
+
+// ---------- input ----------
+function canvasX(e) { const r = cv.getBoundingClientRect(); return (e.clientX - r.left) / r.width * W; }
+function aimAt(e) { const s = F / (PZ - CAMZ); pad.tx = clamp((canvasX(e) - CX) / s, -1.05, 1.05); }
+window.addEventListener('pointermove', e => { if (e.pointerType === 'mouse' || e.target === cv) aimAt(e); });
+cv.addEventListener('pointerdown', e => {
+  if (mode === 'select') { ensureAudio(); const x = canvasX(e); if (x < 48) return pick(-1); if (x > 112) return pick(1); }
+  aimAt(e); pressA();
+});
+window.addEventListener('keydown', e => {
+  if (mode === 'select' && ['ArrowLeft', 'KeyA', 'ArrowRight', 'KeyD'].includes(e.code)) { pick(['ArrowLeft', 'KeyA'].includes(e.code) ? -1 : 1); e.preventDefault(); return; }
+  if (['ArrowLeft', 'KeyA'].includes(e.code)) keys.l = true;
+  else if (['ArrowRight', 'KeyD'].includes(e.code)) keys.r = true;
+  else if (['Space', 'Enter', 'KeyZ', 'KeyX'].includes(e.code)) { if (!e.repeat) pressA(); }
+  else if (e.code === 'KeyB') soundOn = !soundOn;
+  else return;
+  e.preventDefault();
+});
+window.addEventListener('keyup', e => {
+  if (['ArrowLeft', 'KeyA'].includes(e.code)) keys.l = false;
+  if (['ArrowRight', 'KeyD'].includes(e.code)) keys.r = false;
+});
+function hold(id, k) {
+  const b = document.getElementById(id);
+  b.addEventListener('pointerdown', e => { e.preventDefault(); if (mode === 'select') pick(k === 'l' ? -1 : 1); else keys[k] = true; });
+  for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) b.addEventListener(ev, () => { keys[k] = false; });
+}
+hold('btnL', 'l'); hold('btnR', 'r');
+document.getElementById('btnA').addEventListener('pointerdown', e => { e.preventDefault(); pressA(); });
+const replay = document.getElementById('replay');
+replay.addEventListener('click', playAgain);
+document.getElementById('btnB').addEventListener('pointerdown', e => { e.preventDefault(); ensureAudio(); soundOn = !soundOn; sfx(1200, 0.05); });
+
+// ---------- loop ----------
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(0.033, Math.max(0.001, (now - last) / 1000)); last = now; t += dt;
+  update(dt); draw(); replay.hidden = mode !== 'over'; requestAnimationFrame(frame);
+}
+const fontReady = document.fonts ? Promise.race([document.fonts.load('8px "Press Start 2P"'), new Promise(r => setTimeout(r, 1500))]) : Promise.resolve();
+fontReady.catch(() => {}).then(() => requestAnimationFrame(frame));
+})();
+</script>
+</body>
+</html>
